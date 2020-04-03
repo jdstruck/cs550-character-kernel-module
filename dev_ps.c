@@ -8,6 +8,7 @@
 #include <linux/miscdevice.h>
 #include <asm/uaccess.h>
 #include <linux/uaccess.h>
+#include <linux/slab.h>
 
 MODULE_LICENSE("Dual BSD/GPL");
 
@@ -22,9 +23,19 @@ struct task_struct *task;
 struct task_struct *task_child;
 struct list_head *list;
 
+char *proc_str(void) {
+	char *pstr = "Hello From proc_str()\n";
+	return pstr;
+}
+
 static ssize_t my_read(struct file *file, char __user *out, size_t size, loff_t *off) {
-	char *buf = "Hello World\n";
-	int intbuf[] = {1, 2, 3, 4};
+	char *buf = kmalloc(10000, GFP_KERNEL);  
+	//char *hello = "Hello World\nHello darkness my old friend";
+	char *pstr = proc_str();
+	memcpy(buf, pstr, strlen(pstr));
+	//memcpy(buf, hello, strlen(hello));
+
+	//int intbuf[] = {1, 2, 3, 4};
 	int len = strlen(buf);
 	if(size<len)
 		return -EINVAL;
