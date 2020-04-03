@@ -7,6 +7,7 @@
 #include <linux/sched.h>
 #include <linux/miscdevice.h>
 #include <asm/uaccess.h>
+#include <linux/uaccess.h>
 
 MODULE_LICENSE("Dual BSD/GPL");
 
@@ -23,15 +24,17 @@ struct list_head *list;
 
 static ssize_t my_read(struct file *file, char __user *out, size_t size, loff_t *off) {
 	char *buf = "Hello World\n";
+	int intbuf[] = {1, 2, 3, 4};
 	int len = strlen(buf);
 	if(size<len)
 		return -EINVAL;
 	if (*off != 0)
 		return 0;
-	if (raw_copy_to_user(out, buf, len))
+	if (copy_to_user(out, buf, len))
+	//if (copy_to_user(out, intbuf, 4))
 		return -EINVAL;
 	*off = len;
-	sprintf(buf, "Hello World\n");
+	//sprintf(buf, "Hello World\n");
 	return len;
 }
 
@@ -42,7 +45,7 @@ static struct file_operations my_fops={
 
 static struct miscdevice my_misc_device = {
 	.minor = MISC_DYNAMIC_MINOR,
-	.name = "mymod",
+	.name = "dev_ps",
 	.fops = &my_fops
 };
 

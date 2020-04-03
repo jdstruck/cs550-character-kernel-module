@@ -1,8 +1,7 @@
 # To build modules outside of the kernel tree, we run "make"
 # in the kernel source tree; the Makefile there then includes this
 # Makefile once again.
-KEXEC = dev_ps
-UEXEC = user
+
 # This conditional selects whether we are being included from the
 # kernel Makefile or not.
 ifeq ($(KERNELRELEASE),)
@@ -21,26 +20,12 @@ modules_install:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) modules_install
 
 clean:
-	rm -rf user *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions Module.symvers modules.order
+	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions Module.symvers modules.order
 
 .PHONY: modules modules_install clean
 
 else
 	# called from kernel build system: just declare what our modules are
-	obj-m := $(KEXEC).o 
+	obj-m := dev_ps.o 
 endif
-
-user: user.c
-	gcc -Wall -g -o $(UEXEC) $(UEXEC).c
-	
-run: user
-	sudo ./$(UEXEC)
-load:
-	make
-	sudo insmod $(KEXEC).ko
-
-reload:
-	sudo rmmod $(KEXEC)
-	make
-	sudo insmod $(KEXEC).ko
 
