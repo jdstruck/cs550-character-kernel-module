@@ -8,21 +8,30 @@
 #define BUFSIZE 20000
 
 int main() {
-	char *buf = malloc(BUFSIZE);
-	int fscanf_output = 0;
-	int fd = open("/dev/dev_ps", O_RDWR);
-	if (fd < 0) {
+	char *buf0 = calloc(BUFSIZE, 1);
+	char *buf1 = calloc(BUFSIZE, 1);
+	int fd0 = open("/dev/dev_ps", O_RDWR);
+	int fd1 = open("/dev/dev_ps", O_RDWR);
+	if (fd0 < 0) {
 		perror("failed to open /dev/dev_ps");
 		exit(1);
 	}
-	int bytes_read = read(fd, buf, BUFSIZE);
-	if(bytes_read < 0) printf("nothing read\n");
-	printf("\n%s\nbytes read: %d\n", buf, bytes_read);
-	if(close(fd) < 0) {
+	if (fd1 < 0) {
+		perror("failed to open /dev/dev_ps");
+		exit(1);
+	}
+	int bytes_read_fd0 = read(fd0, buf0, BUFSIZE);
+	int bytes_read_fd1 = read(fd1, buf1, BUFSIZE);
+	if(bytes_read_fd0 < 0) printf("nothing read\n");
+	if(bytes_read_fd1 < 0) printf("nothing read\n");
+	printf("%s\n", buf0);
+	printf("%s\n", buf1);
+	if(close(fd0) < 0 || close(fd1)) {
 		perror("close error");
 		exit(1);
 	}
-	free(buf);
+	free(buf0);
+	free(buf1);
 	return 0;
 }
 

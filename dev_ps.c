@@ -12,53 +12,50 @@
 
 MODULE_LICENSE("Dual BSD/GPL");
 
-static char *whom = "world";
-static int howmany = 1;
-module_param(howmany, int, S_IRUGO);
-MODULE_PARM_DESC(howmany, "Number of times to print msg");
-module_param(whom, charp, S_IRUGO);
-MODULE_PARM_DESC(whom, "Whom the hello is addressed to");
-
 struct task_struct *task;
 struct task_struct *task_child;
 struct list_head *list;
 
 char *get_state(long state) {
 	switch (state) {
-		case 0: return "TASK_RUNNING"; break;
-		case 1: return "TASK_INTERRUPTIBLE"; break;
-		case 2: return "TASK_UNINTERRUPTIBLE"; break;
-		case 4: return "__TASK_STOPPED"; break;
-		case 8: return "__TASK_TRACED"; break;
-		case 16: return "EXIT_DEAD"; break;
-		case 32: return "EXIT_ZOMBIE"; break;
-		case 64: return "TASK_PARKED"; break;
-		case 128: return "TASK_WAKEKILL"; break;
-		case 256: return "TASK_WAKING"; break;
-		case 512: return "TASK_PARKED"; break;
-		case 1024: return "TASK_NOLOAD"; break;
-		case 2048: return "TASK_NEW"; break;
-		case 4096: return "TASK_STATE_MAX"; break;
+		case TASK_RUNNING: return "TASK_RUNNING"; break;
+		case TASK_INTERRUPTIBLE: return "TASK_INTERRUPTIBLE"; break;
+		case TASK_UNINTERRUPTIBLE: return "TASK_UNINTERRUPTIBLE"; break;
+		case __TASK_STOPPED: return "__TASK_STOPPED"; break;
+		case __TASK_TRACED: return "__TASK_TRACED"; break;
+		case EXIT_DEAD: return "EXIT_DEAD"; break;
+		case EXIT_ZOMBIE: return "EXIT_ZOMBIE"; break;
+		case EXIT_TRACE: return "EXIT_TRACE"; break;
+		case TASK_PARKED: return "TASK_PARKED"; break;
+		case TASK_DEAD: return "TASK_DEAD"; break;
+		case TASK_WAKEKILL: return "TASK_WAKEKILL"; break;
+		case TASK_WAKING: return "TASK_WAKING"; break;
+		case TASK_NOLOAD: return "TASK_NOLOAD"; break;
+		case TASK_NEW: return "TASK_NEW"; break;
+		case TASK_KILLABLE: return "TASK_KILLABLE"; break;
+		case TASK_STOPPED: return "TASK_STOPPED"; break;
+		case TASK_TRACED: return "TASK_TRACED"; break;
+		case TASK_IDLE: return "TASK_IDLE"; break;
+		case TASK_NORMAL: return "TASK_NORMAL"; break;
+		case TASK_REPORT: return "TASK_REPORT"; break;
 		default: return "UNKNOWN STATE";
 	}
 }
 
 char *proc_str(void) {
 	char *pstr = kmalloc(20000, GFP_KERNEL);
-	char *hello = "Hello From proc_str() via kmalloc DIRECT\n";
-	memcpy(pstr, hello, strlen(hello));
-	strcat(pstr, "This is another line\n");
+	int i;
+	for(i = 0; i < 20000; ++i) pstr[i] = 0;
 	int counter = 0;	
 	for_each_process (task) {
 		char tmp[256];
-		sprintf(tmp, "\nPID: %d PPID: %d CPU: %d STATE: %ld", 
-				task->pid, task->parent->pid, task->cpu, task->state);
+		sprintf(tmp, "\nPID: %d PPID: %d CPU: %d STATE: %ld %s", 
+				task->pid, task->parent->pid, task->cpu, task->state, get_state(task->state));
 		strcat(pstr, tmp);
 		printk(KERN_ALERT "%s", tmp);
 		++counter;
 	}
-	printk(KERN_ALERT "\n%d processes\n", counter);
-	
+	//printk(KERN_ALERT "\n%d processes\n", counter);
 	kfree(pstr);
 	return pstr;
 }
@@ -103,8 +100,5 @@ int __init init_module()
 void __exit cleanup_module()
 {
 	misc_deregister(&my_misc_device);
-	int i;
-	for( i=0; i<howmany; i++)
-		printk(KERN_ALERT "mymodule: %d: Goodbye, cruel %s!!\n", i, whom);
 }
 
