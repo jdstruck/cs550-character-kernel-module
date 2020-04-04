@@ -23,22 +23,38 @@ struct task_struct *task;
 struct task_struct *task_child;
 struct list_head *list;
 
+char *get_state(long state) {
+	switch (state) {
+		case 0: return "TASK_RUNNING"; break;
+		case 1: return "TASK_INTERRUPTIBLE"; break;
+		case 2: return "TASK_UNINTERRUPTIBLE"; break;
+		case 4: return "__TASK_STOPPED"; break;
+		case 8: return "__TASK_TRACED"; break;
+		case 16: return "EXIT_DEAD"; break;
+		case 32: return "EXIT_ZOMBIE"; break;
+		case 64: return "TASK_PARKED"; break;
+		case 128: return "TASK_WAKEKILL"; break;
+		case 256: return "TASK_WAKING"; break;
+		case 512: return "TASK_PARKED"; break;
+		case 1024: return "TASK_NOLOAD"; break;
+		case 2048: return "TASK_NEW"; break;
+		case 4096: return "TASK_STATE_MAX"; break;
+		default: return "UNKNOWN STATE";
+	}
+}
+
 char *proc_str(void) {
-	char *pstr = kmalloc(100000, GFP_KERNEL);
+	char *pstr = kmalloc(20000, GFP_KERNEL);
 	char *hello = "Hello From proc_str() via kmalloc DIRECT\n";
 	memcpy(pstr, hello, strlen(hello));
 	strcat(pstr, "This is another line\n");
 	int counter = 0;	
 	for_each_process (task) {
-		char tmp[100];
-
-		//strcat(pstr, "and another:");
-		sprintf(tmp, "\npid: %d proc: %s cpu: %d state: %ld normal prio = %d", 
-				task->pid, task->comm, task->cpu, task->state, task->normal_prio);
+		char tmp[256];
+		sprintf(tmp, "\nPID: %d PPID: %d CPU: %d STATE: %ld", 
+				task->pid, task->parent->pid, task->cpu, task->state);
 		strcat(pstr, tmp);
 		printk(KERN_ALERT "%s", tmp);
-		//printk(KERN_ALERT "\npid: %d proc: %s cpu: %d state: %ld normal prio = %d", 
-		//		task->pid, task->comm, task->cpu, task->state, task->normal_prio);
 		++counter;
 	}
 	printk(KERN_ALERT "\n%d processes\n", counter);
@@ -48,23 +64,15 @@ char *proc_str(void) {
 }
 
 static ssize_t my_read(struct file *file, char __user *out, size_t size, loff_t *off) {
-	//char *buf = kmalloc(10000, GFP_KERNEL);  
-	//char *hello = "Hello World\nHello darkness my old friend";
 	char *pstr = proc_str();
-	//memcpy(buf, pstr, strlen(pstr));
-	//memcpy(buf, hello, strlen(hello));
-
-	//int intbuf[] = {1, 2, 3, 4};
 	int len = strlen(pstr);
+
 	if(size<len)
 		return -EINVAL;
 	if (*off != 0)
 		return 0;
 	if (copy_to_user(out, pstr, len))
-	//if (copy_to_user(out, intbuf, 4))
 		return -EINVAL;
-	*off = len;
-	//sprintf(buf, "Hello World\n");
 	return len;
 }
 
@@ -86,10 +94,6 @@ int __init init_module()
 	if(err) {
 		pr_err ("can't register my_misc_device");
 		return err;
-	}
-	for_each_process (task) {
-		//printk(KERN_ALERT "\npid: %d proc: %s cpu: %d state: %ld normal prio = %d", 
-		//		task->pid, task->comm, task->cpu, task->state, task->normal_prio);
 	}
 			
 	return 0;
