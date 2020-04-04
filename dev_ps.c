@@ -16,6 +16,7 @@ struct task_struct *task;
 struct task_struct *task_child;
 struct list_head *list;
 
+// Convert from state long int to string
 char *get_state(long state) {
 	switch (state) {
 		case TASK_RUNNING: return "TASK_RUNNING"; break;
@@ -42,6 +43,7 @@ char *get_state(long state) {
 	}
 }
 
+// Generate string of all processes
 char *proc_str(void) {
 	char *pstr = kmalloc(20000, GFP_KERNEL);
 	int i;
