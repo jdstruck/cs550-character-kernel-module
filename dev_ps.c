@@ -46,6 +46,11 @@ char *get_state(long state) {
 // Generate string of all processes
 char *proc_str(void) {
 	char *pstr = kmalloc(20000, GFP_KERNEL);
+	if(!pstr) {
+		printk(KERN_ALERT "\nUnable to allocate space");
+		kfree(pstr);
+		return "Unable to allocate space\n";
+	}
 	int i;
 	for(i = 0; i < 20000; ++i) pstr[i] = 0;
 	int counter = 0;	
@@ -54,7 +59,7 @@ char *proc_str(void) {
 		sprintf(tmp, "\nPID: %d PPID: %d CPU: %d STATE: %ld %s", 
 				task->pid, task->parent->pid, task->cpu, task->state, get_state(task->state));
 		strcat(pstr, tmp);
-		printk(KERN_ALERT "%s", tmp);
+		//printk(KERN_ALERT "%s", tmp);
 		++counter;
 	}
 	//printk(KERN_ALERT "\n%d processes\n", counter);
